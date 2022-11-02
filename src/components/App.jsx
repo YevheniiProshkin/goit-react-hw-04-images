@@ -1,4 +1,5 @@
-import { Component } from 'react';
+// import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/PixabayAPI';
 import { Container } from 'style/AppContainer.styled';
 import { Searchbar } from 'components/Searchbar/Searchbar';
@@ -7,90 +8,76 @@ import { LoadMore } from 'components/Button/Button';
 import { Loader } from 'components/Loader/Loader';
 import { Modal } from 'components/Modal/Modal';
 
-export class App extends Component {
-  state = {
-    searchQuery: '',
-    page: 1,
-    images: [],
-    isLoading: false,
-    error: '',
-    modalImageURL: null,
-    isOpen: false,
-    pages: 0,
-  };
+export const App = () => {
+  const [searchQuery, setSearchQuery] = useState(null);
+  const [page, setPage] = useState(1);
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [modalImageURL, setModalImageURL] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [pages, setPages] = useState(false);
 
-  async componentDidUpdate(prevProp, prevState) {
-    const { searchQuery, page } = this.state;
-    if (searchQuery !== prevState.searchQuery || page !== prevState.page) {
+  useEffect(() => {
+    async function fetchImages(searchQuery, page) {
       try {
-        this.setState({ isLoading: true });
-
+        setIsLoading(true);
         const { images, pages } = await api.fetchImages(searchQuery, page);
-
-        this.setState(prevState => {
-          return {
-            pages,
-            images: [...prevState.images, ...images],
-          };
-        });
+        if (page === 1) {
+          setPages(pages);
+          setImages(images);
+        } else {
+          setPages(pages);
+          setImages(prev => [...prev, ...images]);
+        }
       } catch (error) {
-        this.setState({ error: 'picture not found' });
+        console.log(error);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
     }
-    return null;
-  }
+    if (searchQuery !== null) {
+      fetchImages(searchQuery, page);
+    }
+  }, [searchQuery, page]);
 
-  onSubmit = searchQuery => {
-    this.setState({
-      searchQuery: [searchQuery.toString()],
-      page: 1,
-      images: [],
+  const onSubmit = searchQuery => {
+    setSearchQuery(searchQuery.toString());
+    setPage(1);
+    setPages([]);
+  };
+
+  const onButtonClick = () => {
+    setPage(prev => {
+      return prev + 1;
     });
   };
 
-  onButtonClick = () => {
-    this.setState(prevState => {
-      return { page: prevState.page + 1 };
-    });
+  const onItemClick = id => {
+    const modalImage = images.find(image => image.id === id);
+    setModalImageURL(modalImage.largeImageURL);
+    setIsOpen(true);
   };
 
-  onItemClick = largeImageURL => {
-    const modalImage = this.state.images.find(
-      image => image.largeImageURL === largeImageURL
-    );
-    this.setState({
-      modalImageURL: modalImage.largeImageURL,
-      isOpen: true,
-    });
-  };
-
-  onOverlayClick = e => {
+  const onOverlayClick = e => {
     const overlay = document.getElementById('Overlay');
     if (e.target === overlay) {
-      this.setState({ isOpen: false });
+      setIsOpen(false);
     }
   };
 
-  render() {
-    const { images, isLoading, isOpen, modalImageURL, page, pages } =
-      this.state;
+  const showLoadMore = pages && page !== pages && !isLoading;
 
-    const showLoadMore = pages && page !== pages && !isLoading;
-
-    return (
-      <Container>
-        <Searchbar onSubmit={this.onSubmit} />
-        {isOpen ? (
-          <Modal onClick={this.onOverlayClick} largeImageUrl={modalImageURL} />
-        ) : null}
-        {isLoading ? <Loader /> : null}
-        {images.length > 0 && (
-          <ImageGallery images={images} onClick={this.onItemClick} />
-        )}
-        {showLoadMore && <LoadMore onClick={this.onButtonClick} />}
-      </Container>
-    );
-  }
-}
+  return (
+    <Container>
+      <Searchbar onSubmit={onSubmit} />
+      {isOpen ? (
+        <Modal onClick={onOverlayClick} largeImageUrl={modalImageURL} />
+      ) : null}
+      {isLoading ? <Loader /> : null}
+      {images.length > 0 && (
+        <ImageGallery images={images} onClick={onItemClick} />
+      )}
+      {showLoadMore && <LoadMore onClick={onButtonClick} />}
+    </Container>
+  );
+};

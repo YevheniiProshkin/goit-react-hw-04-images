@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+// import { Component } from 'react';
+import { useState } from 'react';
 import {
   Header,
   Form,
@@ -9,46 +10,41 @@ import {
 } from 'components/Searchbar/Searchbar.styled';
 import { MdSearch } from 'react-icons/md';
 
-export class Searchbar extends Component {
-  state = {
-    searchQuery: '',
-  };
+export const Searchbar = ({ onSubmit }) => {
+  const [searchQuery, setSearchQuery] = useState('');
 
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    if (this.state.searchQuery === '') {
+    if (searchQuery === '') {
       alert('Fill in the search string');
       return;
     }
-    this.props.onSubmit(this.state.searchQuery);
+    onSubmit(searchQuery);
   };
 
-  handleChange = e => {
-    this.setState({ searchQuery: [e.target.value.toLowerCase()] });
+  const handleChange = e => {
+    setSearchQuery(e.target.value.toLowerCase());
   };
 
-  render() {
-    return (
-      <Header>
-        <Form onSubmit={this.handleSubmit}>
-          <Button type="submit">
-            <MdSearch size={30} />
-            <Span>Search</Span>
-          </Button>
-
-          <Input
-            onChange={this.handleChange}
-            value={this.state.searchQuery}
-            type="text"
-            autocomplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-          />
-        </Form>
-      </Header>
-    );
-  }
-}
+  return (
+    <Header>
+      <Form onSubmit={handleSubmit}>
+        <Button type="submit">
+          <MdSearch size={30} />
+          <Span>Search</Span>
+        </Button>
+        <Input
+          onChange={handleChange}
+          value={searchQuery}
+          type="text"
+          autocomplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+        />
+      </Form>
+    </Header>
+  );
+};
 
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,
