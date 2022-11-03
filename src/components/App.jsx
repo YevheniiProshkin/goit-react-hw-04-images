@@ -71,7 +71,7 @@ export const App = () => {
     }
   };
 
-  const showLoadMore = pages && page !== pages && !isLoading;
+  const showLoadMore = !!pages && page !== pages && !isLoading;
 
   return (
     <Container>
