@@ -7,6 +7,7 @@ import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { LoadMore } from 'components/Button/Button';
 import { Loader } from 'components/Loader/Loader';
 import { Modal } from 'components/Modal/Modal';
+import Notiflix from 'notiflix';
 
 export const App = () => {
   const [searchQuery, setSearchQuery] = useState(null);
@@ -22,13 +23,15 @@ export const App = () => {
       try {
         setIsLoading(true);
         const { images, pages } = await api.fetchImages(searchQuery, page);
+        if (images.length === 0) {
+          Notiflix.Notify.failure(
+            'Sorry, picture not found. Please try again.'
+          );
+        }
         if (page === 1) {
           setPages(pages);
-          setImages(images);
-        } else {
-          setPages(pages);
-          setImages(prev => [...prev, ...images]);
         }
+        setImages(prev => [...prev, ...images]);
       } catch (error) {
         console.log(error);
       } finally {
@@ -43,7 +46,8 @@ export const App = () => {
   const onSubmit = searchQuery => {
     setSearchQuery(searchQuery.toString());
     setPage(1);
-    setPages([]);
+    setImages([]);
+    setPages(0);
   };
 
   const onButtonClick = () => {
@@ -52,8 +56,10 @@ export const App = () => {
     });
   };
 
-  const onItemClick = id => {
-    const modalImage = images.find(image => image.id === id);
+  const onItemClick = largeImageURL => {
+    const modalImage = images.find(
+      image => image.largeImageURL === largeImageURL
+    );
     setModalImageURL(modalImage.largeImageURL);
     setIsOpen(true);
   };
