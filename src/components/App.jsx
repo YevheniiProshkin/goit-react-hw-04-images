@@ -64,12 +64,16 @@ export const App = () => {
     setIsOpen(true);
   };
 
-  const onOverlayClick = e => {
-    const overlay = document.getElementById('Overlay');
-    if (e.target === overlay) {
-      setIsOpen(false);
-    }
+  const onOverlayClick = () => {
+    setIsOpen(false);
   };
+
+  // const onOverlayClick = e => {
+  //   const overlay = document.getElementById('Overlay');
+  //   if (e.target === overlay) {
+  //     setIsOpen(false);
+  //   }
+  // };
 
   const showLoadMore = !!pages && page !== pages && !isLoading;
 
